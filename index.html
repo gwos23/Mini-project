@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Resume Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --card: #1a1a26;
+  --border: #2a2a3d;
+  --accent: #6c63ff;
+  --accent2: #00d4aa;
+  --text: #e8e8f0;
+  --muted: #7a7a9a;
+  --danger: #ff6b6b;
+  --warn: #ffd166;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  background-image: radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.08) 0%, transparent 60%),
+                    radial-gradient(ellipse at 80% 80%, rgba(0,212,170,0.06) 0%, transparent 60%);
+}
+
+h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
+
+.page { display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 2rem; }
+.page.active { display: flex; }
+
+/* AUTH PAGES */
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.5px;
+}
+
+.auth-logo span { color: var(--accent2); }
+
+.auth-card h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+}
+
+.auth-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.8rem; }
+
+.field { margin-bottom: 1.1rem; }
+.field label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.5px; text-transform: uppercase; }
+
+.field input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.field input:focus { border-color: var(--accent); }
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  margin-top: 0.5rem;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.auth-switch { text-align: center; margin-top: 1.2rem; font-size: 0.88rem; color: var(--muted); }
+.auth-switch a { color: var(--accent2); text-decoration: none; font-weight: 500; }
+
+.error-msg { color: var(--danger); font-size: 0.82rem; margin-top: 0.8rem; text-align: center; display: none; }
+
+/* APP PAGE */
+#appPage {
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  padding: 0;
+}
+
+.topbar {
+  width: 100%;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--accent); }
+.topbar-logo span { color: var(--accent2); }
+
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
+.user-badge { font-size: 0.82rem; color: var(--muted); }
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+.app-body { width: 100%; max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+
+.section-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem; }
+
+@media(max-width: 640px){ .upload-grid { grid-template-columns: 1fr; } }
+
+.upload-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.4rem;
+}
+
+.upload-box label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.7rem;
+}
+
+.file-drop {
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.file-drop:hover { border-color: var(--accent); }
+.file-drop input { display: none; }
+.file-drop-icon { font-size: 1.6rem; margin-bottom: 0.4rem; }
+.file-drop p { font-size: 0.82rem; color: var(--muted); }
+.file-drop p strong { color: var(--accent); }
+.file-name { font-size: 0.82rem; color: var(--accent2); margin-top: 0.5rem; display: none; }
+
+textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  resize: vertical;
+  outline: none;
+  min-height: 130px;
+  transition: border-color 0.2s;
+}
+textarea:focus { border-color: var(--accent); }
+
+.analyze-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: 0.5px;
+}
+.analyze-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+.analyze-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+/* RESULTS */
+.results { margin-top: 2rem; display: none; }
+
+.score-banner {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.6rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.score-circle {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--accent2);
+  flex-shrink: 0;
+}
+.score-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--accent2); }
+.score-pct { font-size: 0.72rem; color: var(--muted); }
+
+.score-info h3 { font-size: 1.1rem; margin-bottom: 0.3rem; }
+.score-info p { color: var(--muted); font-size: 0.88rem; }
+
+.results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
+@media(max-width: 640px){ .results-grid { grid-template-columns: 1fr; } }
+
+.result-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.4rem;
+}
+
+.result-card h4 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.tag {
+  background: rgba(255,107,107,0.12);
+  color: var(--danger);
+  border: 1px solid rgba(255,107,107,0.25);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.ai-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.4rem;
+  margin-bottom: 1.2rem;
+}
+.ai-box h4 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+.ai-content {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.suggestion-list { list-style: none; }
+.suggestion-list li {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+  color: var(--text);
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+.suggestion-list li:last-child { border-bottom: none; }
+.suggestion-list li::before { content: "→"; color: var(--accent2); flex-shrink: 0; }
+
+.loading-bar {
+  display: none;
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+.loading-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  width: 0%;
+  animation: loadpulse 1.8s ease-in-out infinite;
+}
+@keyframes loadpulse {
+  0%{width:0%;margin-left:0}
+  50%{width:60%;margin-left:20%}
+  100%{width:0%;margin-left:100%}
+}
+
+.status-text { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 0.6rem; display: none; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="page active">
+  <div class="auth-card">
+    <div class="auth-logo">Resume<span>AI</span></div>
+    <h2>Welcome back</h2>
+    <p>Sign in to analyze your resume with AI</p>
+    <div class="field">
+      <label>Username</label>
+      <input id="loginUser" type="text" placeholder="Enter username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="Enter password">
+    </div>
+    <button class="btn-primary" onclick="login()">Sign In</button>
+    <div class="error-msg" id="loginError">Invalid username or password.</div>
+    <div class="auth-switch">No account? <a href="#" onclick="showSignup()">Create one</a></div>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div id="signupPage" class="page">
+  <div class="auth-card">
+    <div class="auth-logo">Resume<span>AI</span></div>
+    <h2>Create account</h2>
+    <p>Start optimizing your resume today</p>
+    <div class="field">
+      <label>Username</label>
+      <input id="signupUser" type="text" placeholder="Choose a username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="signupPass" type="password" placeholder="Choose a password">
+    </div>
+    <button class="btn-primary" onclick="signup()">Create Account</button>
+    <div class="error-msg" id="signupError">Username already taken.</div>
+    <div class="auth-switch">Already have an account? <a href="#" onclick="showLogin()">Sign in</a></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appPage" class="page">
+  <div class="topbar">
+    <div class="topbar-logo">Resume<span>AI</span></div>
+    <div class="topbar-right">
+      <span class="user-badge" id="userBadge"></span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div class="section-title">Analyze Your Resume</div>
+    <p class="section-sub">Upload your resume and paste a job description — AI will do the rest.</p>
+
+
+
+    <div class="upload-grid">
+      <div class="upload-box">
+        <label>Your Resume (PDF)</label>
+        <div class="file-drop" onclick="document.getElementById('resumeFile').click()">
+          <input type="file" id="resumeFile" accept="application/pdf" onchange="onFileSelect(this)">
+          <div class="file-drop-icon">📄</div>
+          <p><strong>Click to upload</strong> your PDF</p>
+          <p>resume, CV, or portfolio</p>
+        </div>
+        <div class="file-name" id="fileName"></div>
+      </div>
+
+      <div class="upload-box">
+        <label>Job Description</label>
+        <textarea id="jobDesc" placeholder="Paste the full job description here..."></textarea>
+      </div>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">✦ Analyze with AI</button>
+    <div class="loading-bar" id="loadingBar"><div class="loading-bar-inner"></div></div>
+    <div class="status-text" id="statusText"></div>
+
+    <!-- RESULTS -->
+    <div class="results" id="results">
+
+      <div class="score-banner">
+        <div class="score-circle">
+          <div class="score-num" id="scoreNum">0</div>
+          <div class="score-pct">% match</div>
+        </div>
+        <div class="score-info">
+          <h3 id="scoreLabel">Analyzing...</h3>
+          <p id="scoreDesc"></p>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <div class="result-card">
+          <h4>Missing Keywords</h4>
+          <div class="keyword-tags" id="missingTags"></div>
+        </div>
+        <div class="result-card">
+          <h4>AI Suggestions</h4>
+          <ul class="suggestion-list" id="suggestionList"></ul>
+        </div>
+      </div>
+
+      <div class="ai-box">
+        <h4>AI-Improved Resume Draft</h4>
+        <div class="ai-content" id="improvedResume">Generating...</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+
+// ── PDF.js Worker Fix ─────────────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+// ── AUTH ──────────────────────────────────────────────
+function getUsers(){ return JSON.parse(localStorage.getItem("resumeai_users") || "{}"); }
+function saveUsers(u){ localStorage.setItem("resumeai_users", JSON.stringify(u)); }
+
+let currentUser = "";
+
+function login(){
+  const u = document.getElementById("loginUser").value.trim();
+  const p = document.getElementById("loginPass").value;
+  const users = getUsers();
+  const err = document.getElementById("loginError");
+  if(users[u] && users[u] === p){
+    currentUser = u;
+    document.getElementById("userBadge").textContent = "Hi, " + u;
+    showPage("appPage");
+    err.style.display = "none";
+  } else {
+    err.style.display = "block";
+  }
+}
+
+function signup(){
+  const u = document.getElementById("signupUser").value.trim();
+  const p = document.getElementById("signupPass").value;
+  const users = getUsers();
+  const err = document.getElementById("signupError");
+  if(!u || !p){ err.textContent = "Fill in both fields."; err.style.display = "block"; return; }
+  if(users[u]){ err.textContent = "Username already taken."; err.style.display = "block"; return; }
+  users[u] = p; saveUsers(users);
+  err.style.display = "none";
+  showLogin();
+  alert("Account created! Please sign in.");
+}
+
+function logout(){ currentUser = ""; showPage("loginPage"); }
+
+function showSignup(){ document.getElementById("loginError").style.display="none"; showPage("signupPage"); }
+function showLogin(){ document.getElementById("signupError").style.display="none"; showPage("loginPage"); }
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+// ── FILE HANDLING ──────────────────────────────────────
+function onFileSelect(input){
+  const fn = document.getElementById("fileName");
+  if(input.files[0]){
+    fn.textContent = "📎 " + input.files[0].name;
+    fn.style.display = "block";
+  }
+}
+
+async function extractPDF(file){
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = "";
+  for(let i=1; i<=pdf.numPages; i++){
+    const page = await pdf.getPage(i);
+    const pageContent = await page.getTextContent();
+    pageContent.items.forEach(item => text += item.str + " ");
+  }
+  return text;
+}
+
+// ── NLP ────────────────────────────────────────────────
+const STOPWORDS = new Set(["the","and","for","are","this","that","with","have","from","they","will","your","been","more","were","their","there","about","which","when","into","than","what","some","its","also","but","not","you","all","can","has","was","our","had","one","use","any","who","may","each","over","such","other","these","those","just","then","them","very","much","his","her","him","she","he","we","it","is","in","of","to","a","an","on","at","be","do","or","as","by","if","no","so","up","out","my","me","us","am","does","did","get","got","new","how","way","per","via","due","two","few","lot","big","old","own","set","let","off","put","run","say","see","try","ask","add","ago","end","act","age","ago","aim","air","art","ask","bed","bit","buy","car","cut","day","far","fit","fun","gun","hit","job","key","law","lay","led","lie","man","men","net","now","pay","pro","raw","red","sit","six","tax","ten","top","try","two","use","way","win","yet"]);
+
+function cleanText(t){ return t.toLowerCase().replace(/[^a-z\s]/g, " "); }
+
+function getWords(t){
+  return cleanText(t).split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+}
+
+function tfidf(doc, allDocs){
+  const words = getWords(doc);
+  const tf = {};
+  words.forEach(w => tf[w] = (tf[w]||0) + 1);
+  const result = {};
+  for(const word in tf){
+    const df = allDocs.filter(d => d.includes(word)).length;
+    const idf = Math.log((allDocs.length + 1) / (df + 1));
+    result[word] = tf[word] * idf;
+  }
+  return result;
+}
+
+function cosineSim(v1, v2){
+  let dot=0, m1=0, m2=0;
+  const keys = new Set([...Object.keys(v1), ...Object.keys(v2)]);
+  keys.forEach(k => {
+    const a = v1[k]||0, b = v2[k]||0;
+    dot += a*b; m1 += a*a; m2 += b*b;
+  });
+  return dot / (Math.sqrt(m1) * Math.sqrt(m2) || 1);
+}
+
+function extractKeywords(text, n=20){
+  const words = getWords(text);
+  const freq = {};
+  words.forEach(w => freq[w] = (freq[w]||0)+1);
+  return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n).map(x=>x[0]);
+}
+
+function getMissingKeywords(resume, job){
+  const rWords = new Set(getWords(resume));
+  const jKeywords = extractKeywords(job, 25);
+  return jKeywords.filter(w => !rWords.has(w)).slice(0, 12);
+}
+
+// ── GROQ AI ────────────────────────────────────────────
+async function callClaude(prompt){
+  const apiKey = "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";
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + apiKey
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1000,
+      temperature: 0.7
+    })
+  });
+  if(!res.ok){
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error?.message || "API error: " + res.status);
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+// ── MAIN ANALYZE ───────────────────────────────────────
+async function analyze(){
+  const file = document.getElementById("resumeFile").files[0];
+  const job = document.getElementById("jobDesc").value.trim();
+  if(!file || !job){ alert("Please upload a PDF and paste a job description."); return; }
+
+  const btn = document.getElementById("analyzeBtn");
+  const loadBar = document.getElementById("loadingBar");
+  const statusEl = document.getElementById("statusText");
+  const resultsEl = document.getElementById("results");
+
+  btn.disabled = true;
+  loadBar.style.display = "block";
+  statusEl.style.display = "block";
+  resultsEl.style.display = "none";
+
+  try {
+    // Step 1: Extract PDF
+    statusEl.textContent = "Reading your resume...";
+    const resumeText = await extractPDF(file);
+
+    // Step 2: NLP Score
+    statusEl.textContent = "Calculating match score...";
+    const v1 = tfidf(resumeText, [resumeText, job]);
+    const v2 = tfidf(job, [resumeText, job]);
+    const score = Math.round(cosineSim(v1, v2) * 100);
+
+    const missing = getMissingKeywords(resumeText, job);
+
+    // Update score UI
+    document.getElementById("scoreNum").textContent = score;
+    const label = score >= 70 ? "Strong Match" : score >= 45 ? "Moderate Match" : "Weak Match";
+    const desc = score >= 70
+      ? "Your resume aligns well with this role."
+      : score >= 45
+      ? "Some gaps exist — improvements can help."
+      : "Your resume needs significant tailoring for this job.";
+    document.getElementById("scoreLabel").textContent = label;
+    document.getElementById("scoreDesc").textContent = desc;
+
+    // Missing keywords
+    const tagsEl = document.getElementById("missingTags");
+    tagsEl.innerHTML = missing.length
+      ? missing.map(k => `<span class="tag">${k}</span>`).join("")
+      : `<span style="color:var(--accent2);font-size:0.85rem">No major gaps found!</span>`;
+
+    // Show results early
+    resultsEl.style.display = "block";
+    document.getElementById("suggestionList").innerHTML = `<li>Generating AI suggestions...</li>`;
+    document.getElementById("improvedResume").textContent = "Generating improved resume draft...";
+
+    // Step 3: AI Suggestions
+    statusEl.textContent = "Asking AI for suggestions...";
+    const suggestPrompt = `You are a professional resume coach. 
+A candidate's resume has a ${score}% match with this job description.
+Missing keywords from their resume: ${missing.join(", ")}.
+
+Job Description (summary):
+${job.slice(0, 800)}
+
+Give exactly 5 specific, actionable bullet suggestions to improve the resume for this job. 
+Each suggestion should be 1 sentence. Start each with a verb. Return ONLY the 5 suggestions, one per line, no numbering or bullets.`;
+
+    const suggestionsRaw = await callClaude(suggestPrompt);
+    const suggestions = suggestionsRaw.trim().split("\n").filter(s => s.trim().length > 0).slice(0, 5);
+    document.getElementById("suggestionList").innerHTML = suggestions
+      .map(s => `<li>${s.trim()}</li>`).join("");
+
+    // Step 4: Improved Resume
+    statusEl.textContent = "Generating improved resume draft...";
+    const improvePrompt = `You are a professional resume writer.
+Here is a candidate's resume text:
+${resumeText.slice(0, 1500)}
+
+Here is the job description they are applying for:
+${job.slice(0, 800)}
+
+Missing keywords they should add: ${missing.join(", ")}.
+
+Rewrite a concise, improved professional summary section (3-5 sentences) for this candidate tailored to the job. 
+Then list 5 improved bullet points for their most recent experience that would strengthen their application.
+Be specific, use strong action verbs, and incorporate missing keywords naturally.
+Format: start with "PROFESSIONAL SUMMARY" then "KEY ACHIEVEMENTS".`;
+
+    const improved = await callClaude(improvePrompt);
+    document.getElementById("improvedResume").textContent = improved.trim();
+
+    statusEl.textContent = "Analysis complete!";
+    setTimeout(() => { statusEl.style.display = "none"; loadBar.style.display = "none"; }, 1500);
+
+  } catch(err) {
+    statusEl.textContent = "Error: " + err.message;
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
